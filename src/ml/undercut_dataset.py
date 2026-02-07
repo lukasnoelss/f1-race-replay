@@ -52,7 +52,7 @@ def extract_pit_stops(session):
                 pit_stops.append(stop_data)
     return pd.DataFrame(pit_stops)
 
-def find_undercut_scenarios(pit_stops_df, session):
+def find_undercut_scenarios(pit_stops_df, session, track_name):
     scenarios = []
     laps = session.laps 
     compound_map = {
@@ -103,9 +103,13 @@ def find_undercut_scenarios(pit_stops_df, session):
 
                         gap_before = calculate_gap(laps, attacker['Driver'], defender['Driver'], attacker['LapNumber'] - 1) #on the actual pit lap before the pit stop
                         tire_delta = attacker['TyreLifeBefore'] - defender['TyreLifeBefore']
+                        pit_delta = attacker['PitDuration'] - defender['PitDuration']
                         # DATA CLEANING: Only keep realistic duels (Gap < 3.0 seconds)
                         # We also ignore cases where attacker is already AHEAD (Gap < -1.0)
                         if gap_before > 3.0 or gap_before < -1.0:
+                            continue
+
+                        if attacker['PitDuration'] > 100 or defender['PitDuration'] > 100:
                             continue
                         att_hardness = compound_map.get(attacker['CompoundBefore'], 0)
                         def_hardness = compound_map.get(defender['CompoundBefore'], 0)
@@ -113,7 +117,9 @@ def find_undercut_scenarios(pit_stops_df, session):
                         scenario ={
                             'Attacker': attacker['Driver'],
                             'Defender': defender['Driver'],
+                            'Track': track_name,
                             'Outcome': outcome,
+                            'Pit_Delta': pit_delta,
                             'Gap_Before': gap_before,
                             'Tire_Delta': tire_delta,
                             'Def_Traffic_Gap': def_traffic_gap,
@@ -161,9 +167,9 @@ if __name__ == "__main__":
             try:
                 print(f"--- Processing {year} Round {round_num} ---")
                 session = load_race_session(year, round_num)
-                
+                track = session.event['EventName']
                 stops = extract_pit_stops(session)
-                duels = find_undercut_scenarios(stops, session)
+                duels = find_undercut_scenarios(stops, session, track)
                 
                 if not duels.empty:
                     all_scenarios.append(duels)
