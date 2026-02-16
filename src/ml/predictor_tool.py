@@ -19,6 +19,9 @@ def predict_undercut():
     att_h = int(input("Attacker Tire (1=Soft, 3=Hard): "))
     def_h = int(input("Defender Tire (1=Soft, 3=Hard): "))
     
+    # --- Part C Enhancement: Race Context ---
+    progress = float(input("Race Progress (0.0 to 1.0, e.g. 0.5 for mid-race): "))
+
     # --- Part B Enhancement: Track Selection ---
     print("\nAvailable Tracks examples: 'Bahrain Grand Prix', 'Monaco Grand Prix', 'Spanish Grand Prix'")
     track_input = input("Enter Track Name (or press enter for average): ").strip()
@@ -33,10 +36,11 @@ def predict_undercut():
     scenario['Def_Traffic_Gap'] = traffic
     scenario['Att_Pit_Duration'] = att_pit
     scenario['Def_Pit_Duration'] = def_pit
-    scenario['Pit_Delta'] = att_pit - def_pit # <--- Calculated automatically!
+    scenario['Pit_Delta'] = att_pit - def_pit
     scenario['Track_Temp'] = temp
     scenario['Att_Hardness'] = att_h
     scenario['Def_Hardness'] = def_h
+    scenario['Race_Progress'] = progress
     
     # One-Hot Encode the chosen track
     track_col = f"Track_{track_input}"
