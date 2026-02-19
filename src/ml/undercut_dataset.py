@@ -162,7 +162,7 @@ if __name__ == "__main__":
     
     all_scenarios = []
     
-    years = [2022,2023, 2024, 2025] 
+    years = [2020,2021,2022,2023, 2024, 2025] 
     
     for year in years:
         for round_num in range(1, 25): 
