@@ -5,31 +5,32 @@ from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score
 import joblib
 
-# 1. Load the data
+# 1. Load the data and DNA
 df = pd.read_csv('undercut_dataset.csv')
+track_dna = joblib.load('track_dna.pkl')
 
+# Inject Track DNA Features
+df['Track_Undercut_Index'] = df['Track'].map(lambda x: track_dna.get(x, {}).get('index', 0.5))
+# Note: Avg_Pit_Duration is already in the CSV as Att_Pit_Duration since we sanitized it!
 
 features = [
     'Gap_Before', 
     'Tire_Delta', 
     'Def_Traffic_Gap', 
     'Att_Pit_Duration', 
-    'Def_Pit_Duration', 
-    'Pit_Delta',
+    'Pit_Delta', # Now 0.0 in sanitized data
     'Track_Temp', 
     'Att_Hardness', 
     'Def_Hardness',
-    'Race_Progress' 
+    'Race_Progress',
+    'Track_Undercut_Index'
 ]
 
 df = df[df['Outcome'] != 'unknown']
 df = df.dropna(subset=features + ['Outcome'])
 df['Target'] = df['Outcome'].map({'success': 1, 'fail': 0})
 
-# Back to One-Hot Encoding (V3 Style) which worked well at 79.4%
-X_numeric = df[features]
-X_tracks = pd.get_dummies(df['Track'], prefix='Track')
-X = pd.concat([X_numeric, X_tracks], axis=1)
+X = df[features]
 y = df['Target']
 all_features = X.columns.tolist()
 
@@ -69,17 +70,17 @@ test_sample = pd.DataFrame(0, index=[0], columns=all_features)
 test_sample['Gap_Before'] = 0.8
 test_sample['Tire_Delta'] = -10
 test_sample['Def_Traffic_Gap'] = 5.0
-test_sample['Att_Pit_Duration'] = 24.5
-test_sample['Def_Pit_Duration'] = 24.5
+
+# Bahrain DNA Lookup
+bahrain_dna = track_dna.get('Bahrain Grand Prix', {'index': 0.5, 'avg_pit': 24.5})
+
+test_sample['Att_Pit_Duration'] = bahrain_dna['avg_pit']
 test_sample['Pit_Delta'] = 0.0
 test_sample['Track_Temp'] = 30.0
 test_sample['Att_Hardness'] = 2
 test_sample['Def_Hardness'] = 2
-test_sample['Race_Progress'] = 0.5 # 50% through the race
-
-# One-Hot Encoding for Bahrain
-if 'Track_Bahrain Grand Prix' in all_features:
-    test_sample['Track_Bahrain Grand Prix'] = 1
+test_sample['Race_Progress'] = 0.5 
+test_sample['Track_Undercut_Index'] = bahrain_dna['index']
 
 prediction = model.predict(test_sample)
 result = "SUCCESS" if prediction[0] == 1 else "FAIL"

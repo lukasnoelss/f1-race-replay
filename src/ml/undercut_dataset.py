@@ -64,6 +64,15 @@ def find_undercut_scenarios(pit_stops_df, session, track_name, total_laps):
     'UNKNOWN': 0
 }
     
+    # 🚨 ANTI-BIAS FIX: Calculate the average pit duration for this specific RACE
+    # This prevents the model from "knowing" if someone had a slow stop in the future.
+    if not pit_stops_df.empty:
+        # Filter out massive outliers (stops > 50s usually mean retirement/damage)
+        clean_stops = pit_stops_df[pit_stops_df['PitDuration'] < 50]
+        session_avg_pit = clean_stops['PitDuration'].mean()
+    else:
+        session_avg_pit = 24.5 # Global average fallback
+
     for i, attacker in pit_stops_df.iterrows():
         for j, defender in pit_stops_df.iterrows():
             if i == j:
@@ -103,7 +112,12 @@ def find_undercut_scenarios(pit_stops_df, session, track_name, total_laps):
 
                         gap_before = calculate_gap(laps, attacker['Driver'], defender['Driver'], attacker['LapNumber'] - 1) #on the actual pit lap before the pit stop
                         tire_delta = attacker['TyreLifeBefore'] - defender['TyreLifeBefore']
-                        pit_delta = round(attacker['PitDuration'] - defender['PitDuration'], 3)
+                        
+                        # 🏁 STRATEGY FIX: Pit_Delta is now 0 by default (assuming clean stops)
+                        # But we keep Att_Pit_Duration as the session average so the model 
+                        # knows the "cost" of a stop at this specific track.
+                        pit_delta = 0.0 
+                        
                         # DATA CLEANING: Only keep realistic duels (Gap < 3.0 seconds)
                         # We also ignore cases where attacker is already AHEAD (Gap < -1.0)
                         if gap_before > 3.0 or gap_before < -1.0:
@@ -124,8 +138,8 @@ def find_undercut_scenarios(pit_stops_df, session, track_name, total_laps):
                             'Tire_Delta': tire_delta,
                             'Race_Progress': round(race_progress, 3),
                             'Def_Traffic_Gap': def_traffic_gap,
-                            'Att_Pit_Duration': attacker['PitDuration'],
-                            'Def_Pit_Duration': defender['PitDuration'],
+                            'Att_Pit_Duration': round(session_avg_pit, 3),
+                            'Def_Pit_Duration': round(session_avg_pit, 3),
                             'Track_Temp': attacker['TrackTemp'],
                             'Att_Hardness': att_hardness,
                             'Def_Hardness': def_hardness,
