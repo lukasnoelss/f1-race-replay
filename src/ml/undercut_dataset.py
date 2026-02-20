@@ -64,7 +64,7 @@ def find_undercut_scenarios(pit_stops_df, session, track_name, total_laps):
     'UNKNOWN': 0
 }
     
-    # 🚨 ANTI-BIAS FIX: Calculate the average pit duration for this specific RACE
+    #ANTI-BIAS FIX: Calculate the average pit duration for this specific RACE
     # This prevents the model from "knowing" if someone had a slow stop in the future.
     if not pit_stops_df.empty:
         # Filter out massive outliers (stops > 50s usually mean retirement/damage)

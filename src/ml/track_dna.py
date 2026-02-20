@@ -3,11 +3,11 @@ import joblib
 import os
 
 def calculate_track_dna():
-    print("🧬 CRUNCHING TRACK DNA (100% Data-Driven)...")
+    print("CRUNCHING TRACK DNA (100% Data-Driven)...")
     
     csv_path = 'undercut_dataset.csv'
     if not os.path.exists(csv_path):
-        print(f"❌ Error: {csv_path} not found. Please run data collection first.")
+        print(f"Error: {csv_path} not found. Please run data collection first.")
         return
 
     # 1. Load the historical data

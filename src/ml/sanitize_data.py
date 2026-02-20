@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 def sanitize_dataset():
-    print("🧹 SANITIZING DATASET (Fixing Look-Ahead Bias)...")
+    print("SANITIZING DATASET (Fixing Look-Ahead Bias)")
     
     df = pd.read_csv('undercut_dataset.csv')
     
@@ -24,7 +24,7 @@ def sanitize_dataset():
     
     # 3. Save it back
     df.to_csv('undercut_dataset.csv', index=False)
-    print(f"✅ Success! Corrected {len(df)} samples by assuming standard pit stops.")
+    print(f"Success! Corrected {len(df)} samples by assuming standard pit stops.")
     print("Model will now focus on Gaps and Tires instead of mechanical luck.")
 
 if __name__ == "__main__":
